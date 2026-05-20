@@ -6,7 +6,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 app.use(cors());
 app.use(express.json());
@@ -19,8 +19,11 @@ app.use((req, res, next) => {
   next();
 });
 
-const tempDir = path.join(__dirname, 'temp');
-if (!fs.existsSync(tempDir)) {
+const tempDir = process.env.VERCEL
+  ? '/tmp'
+  : path.join(__dirname, 'temp');
+
+if (!process.env.VERCEL && !fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir, { recursive: true });
 }
 
@@ -30,15 +33,17 @@ const ytDlpPath = path.join(binDir, process.platform === 'win32' ? 'yt-dlp.exe' 
 // Active download tasks progress store
 const tasks = {};
 
-// Clean up old temporary files on startup
-try {
-  const files = fs.readdirSync(tempDir);
-  for (const file of files) {
-    fs.unlinkSync(path.join(tempDir, file));
+// Clean up old temporary files on startup (only locally)
+if (!process.env.VERCEL) {
+  try {
+    const files = fs.readdirSync(tempDir);
+    for (const file of files) {
+      fs.unlinkSync(path.join(tempDir, file));
+    }
+    console.log('[cleanup] Cleared temporary downloads folder.');
+  } catch (err) {
+    console.error('[cleanup] Error clearing temp folder:', err.message);
   }
-  console.log('[cleanup] Cleared temporary downloads folder.');
-} catch (err) {
-  console.error('[cleanup] Error clearing temp folder:', err.message);
 }
 
 // Check if yt-dlp binary exists
@@ -144,6 +149,15 @@ app.post('/api/download/start', (req, res) => {
       '-x',
       '--audio-format', 'mp3',
       '--audio-quality', '0', // Best VBR quality
+      '--ffmpeg-location', binDir,
+      '-o', outputPattern,
+      '--no-playlist',
+      url
+    ];
+  } else if (format === 'mp4') {
+    // Download high quality video (MP4) and merge with audio (M4A)
+    downloadArgs = [
+      '-f', 'bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]',
       '--ffmpeg-location', binDir,
       '-o', outputPattern,
       '--no-playlist',
@@ -257,7 +271,9 @@ app.get('/api/download/file/:taskId', (req, res) => {
   const originalExtension = path.extname(task.filePath);
   
   // Custom response headers based on file type
-  if (originalExtension === '.mp3') {
+  if (originalExtension === '.mp4') {
+    res.setHeader('Content-Type', 'video/mp4');
+  } else if (originalExtension === '.mp3') {
     res.setHeader('Content-Type', 'audio/mpeg');
   } else {
     res.setHeader('Content-Type', 'audio/mp4'); // M4A

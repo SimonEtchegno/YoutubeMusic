@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 const API_BASE = import.meta.env.DEV
-  ? 'http://localhost:5000/api'
+  ? 'http://localhost:5001/api'
   : '/_/backend/api';
 
 // Regular expression to validate standard and short YouTube URLs
@@ -276,7 +276,7 @@ export default function App() {
               {!progress ? (
                 <>
                   <div className="format-selector">
-                    <span className="selector-title">Formato de Audio</span>
+                    <span className="selector-title">Formato de Descarga</span>
                     <div className="format-options">
                       <div 
                         className={`format-option-card ${selectedFormat === 'm4a' ? 'selected' : ''}`}
@@ -284,8 +284,8 @@ export default function App() {
                       >
                         <div className="radio-circle"></div>
                         <div className="option-details">
-                          <span className="option-name">AAC / M4A (Original Directo)</span>
-                          <span className="option-desc">Excelente fidelidad, sin re-compresión, descarga instantánea. Recomendado.</span>
+                          <span className="option-name">AAC / M4A (Audio Directo)</span>
+                          <span className="option-desc">Excelente fidelidad nativa, sin re-compresión, descarga instantánea. Recomendado.</span>
                         </div>
                       </div>
 
@@ -299,13 +299,24 @@ export default function App() {
                           <span className="option-desc">Compatibilidad absoluta con reproductores antiguos, convertido a 250kbps VBR.</span>
                         </div>
                       </div>
+
+                      <div 
+                        className={`format-option-card ${selectedFormat === 'mp4' ? 'selected' : ''}`}
+                        onClick={() => setSelectedFormat('mp4')}
+                      >
+                        <div className="radio-circle"></div>
+                        <div className="option-details">
+                          <span className="option-name">MP4 (Video Completo)</span>
+                          <span className="option-desc">Descarga el video en alta definición (1080p/720p) con audio acoplado en un archivo MP4.</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <button onClick={startDownload} className="download-trigger-btn">
                     <svg style={{ width: '1.25rem', height: '1.25rem', fill: 'currentColor' }} viewBox="0 0 24 24">
                       <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
                     </svg>
-                    Descargar Audio en {selectedFormat.toUpperCase()}
+                    Descargar {selectedFormat === 'mp4' ? 'Video MP4' : `Audio ${selectedFormat.toUpperCase()}`}
                   </button>
                 </>
               ) : (
@@ -313,8 +324,14 @@ export default function App() {
                   <div className="progress-header">
                     <span className="progress-title-text">
                       {progress.status === 'starting' && 'Iniciando descarga...'}
-                      {progress.status === 'downloading' && 'Descargando audio de YouTube...'}
-                      {progress.status === 'converting' && (selectedFormat === 'mp3' ? 'Convirtiendo y extrayendo MP3...' : 'Optimizando formato M4A...')}
+                      {progress.status === 'downloading' && (selectedFormat === 'mp4' ? 'Descargando video de YouTube...' : 'Descargando audio de YouTube...')}
+                      {progress.status === 'converting' && (
+                        selectedFormat === 'mp4' 
+                          ? 'Acoplando video y audio en MP4...' 
+                          : selectedFormat === 'mp3' 
+                            ? 'Convirtiendo y extrayendo MP3...' 
+                            : 'Optimizando formato M4A...'
+                      )}
                       {progress.status === 'completed' && '¡Completado! Descargando archivo...'}
                       {progress.status === 'failed' && 'Error en la descarga'}
                     </span>
