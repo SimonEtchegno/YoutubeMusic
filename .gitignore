@@ -1,0 +1,27 @@
+# Dependency directories
+node_modules/
+
+# Local binaries (downloaded automatically on postinstall)
+backend/bin/
+
+# Temporary downloaded audio files
+backend/temp/
+
+# Production build outputs
+dist/
+build/
+
+# IDE files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# System files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
