@@ -11,6 +11,14 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// Middleware to strip Vercel's route prefix if present (Experimental Services support)
+app.use((req, res, next) => {
+  if (req.url.startsWith('/_/backend')) {
+    req.url = req.url.slice('/_/backend'.length);
+  }
+  next();
+});
+
 const tempDir = path.join(__dirname, 'temp');
 if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir, { recursive: true });

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = import.meta.env.DEV
+  ? 'http://localhost:5000/api'
+  : '/_/backend/api';
 
 // Regular expression to validate standard and short YouTube URLs
 const YOUTUBE_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/(watch\?v=|embed\/|v\/|.+\?v=)?([^&=%\?]{11})/;
